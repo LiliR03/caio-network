@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAIO Network — Chicago Booth 2025–2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --cream: #f7f4ef; --cream2: #ede9e2; --ink: #1c1a17; --ink2: #3d3a35;
+  --muted: #9a9690; --line: #ddd9d2; --gold: #b8924a; --gold-light: #e8d9c0;
+  --white: #fff; --r: 12px; --tab-h: 64px;
+  --fs: 1; /* font scale multiplier, changed by slider */
+}
+html { font-size: calc(16px * var(--fs)); }
+body { background: var(--cream); color: var(--ink); font-family: 'Outfit', sans-serif; font-weight: 300; min-height: 100vh; -webkit-font-smoothing: antialiased; overscroll-behavior: none; }
+
+/* ─── TOP BAR ─── */
+.topbar { background: var(--ink); padding: 14px 18px 12px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; gap: 10px; }
+.brand-wrap {}
+.brand-mark { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; font-weight: 300; color: var(--gold-light); line-height: 1; }
+.brand-sub { font-size: 0.58rem; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.28); margin-top: 3px; }
+.topbar-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.topbar-stats { display: flex; gap: 14px; text-align: right; }
+.ts-n { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; font-weight: 300; color: var(--gold-light); line-height: 1; }
+.ts-l { font-size: 0.56rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-top: 3px; }
+
+/* Font size control */
+.fs-control { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09); border-radius: 20px; padding: 5px 10px; }
+.fs-label { font-size: 0.56rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+.fs-btn { background: none; border: none; color: rgba(255,255,255,0.45); cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0 2px; transition: color 0.15s; -webkit-tap-highlight-color: transparent; font-family: 'Outfit', sans-serif; }
+.fs-btn:hover { color: var(--gold-light); }
+.fs-val { font-size: 0.62rem; color: rgba(255,255,255,0.35); min-width: 22px; text-align: center; font-family: 'Outfit', sans-serif; }
+
+/* Sync pill */
+.sync-pill { display: flex; align-items: center; gap: 5px; padding: 5px 9px; border-radius: 20px; background: rgba(255,255,255,0.06); cursor: pointer; border: 1px solid rgba(255,255,255,0.09); transition: background 0.15s; }
+.sync-pill:hover { background: rgba(255,255,255,0.11); }
+.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: #9a9690; transition: background 0.3s; flex-shrink: 0; }
+.sync-dot.live { background: #6ab87a; }
+.sync-dot.syncing { background: var(--gold); animation: pulse 0.9s infinite; }
+.sync-dot.error { background: #c07070; }
+.sync-label { font-size: 0.54rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.28); }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+/* ─── BOTTOM TAB BAR ─── */
+.tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: var(--tab-h); background: var(--ink); display: flex; border-top: 1px solid rgba(255,255,255,0.07); z-index: 50; padding-bottom: env(safe-area-inset-bottom); }
+.tab-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; background: none; border: none; cursor: pointer; color: rgba(255,255,255,0.3); font-family: 'Outfit', sans-serif; font-size: 0.58rem; font-weight: 400; letter-spacing: 0.07em; text-transform: uppercase; transition: color 0.15s; -webkit-tap-highlight-color: transparent; }
+.tab-btn svg { transition: opacity 0.15s; opacity: 0.3; }
+.tab-btn.active { color: var(--gold); }
+.tab-btn.active svg { opacity: 1; }
+
+/* ─── LAYOUT ─── */
+.shell { display: flex; flex-direction: column; min-height: 100vh; }
+main { flex: 1; padding: 20px 16px calc(var(--tab-h) + 16px); }
+.page { display: none; animation: fadeUp 0.22s ease both; }
+.page.active { display: block; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+
+.ph { display: flex; align-items: baseline; gap: 10px; margin-bottom: 18px; padding-bottom: 13px; border-bottom: 1px solid var(--line); }
+.ph-title { font-family: 'Cormorant Garamond', serif; font-size: 1.7rem; font-weight: 400; line-height: 1; }
+.ph-meta { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+/* ─── DIST BAR ─── */
+.dist-panel { background: var(--white); border: 1px solid var(--line); border-radius: var(--r); padding: 15px 17px 13px; margin-bottom: 13px; }
+.eyebrow { font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; font-weight: 400; }
+.bar-track { height: 7px; border-radius: 4px; display: flex; gap: 2px; overflow: hidden; background: var(--cream2); }
+.bar-seg { height: 100%; border-radius: 2px; }
+.bar-legend { margin-top: 11px; display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.leg-item { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--ink2); }
+.leg-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+/* ─── CLUSTER CARDS ─── */
+.cluster-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.cluster-card { background: var(--white); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
+.cluster-head { padding: 14px 16px 11px; display: flex; align-items: center; gap: 10px; }
+.cluster-pip { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.cluster-name { font-family: 'Cormorant Garamond', serif; font-size: 1.08rem; font-weight: 400; flex: 1; color: var(--ink); }
+.cluster-badge { font-size: 0.65rem; color: var(--muted); background: var(--cream2); padding: 3px 9px; border-radius: 20px; font-weight: 400; }
+.cluster-body { border-top: 1px solid var(--line); padding: 11px 16px 15px; display: flex; flex-direction: column; gap: 10px; }
+.p-row { display: flex; align-items: center; gap: 10px; }
+.p-av { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 500; flex-shrink: 0; color: #fff; letter-spacing: 0.03em; }
+.p-name { font-size: 0.85rem; font-weight: 400; line-height: 1.2; color: var(--ink); }
+.p-sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; line-height: 1.2; }
+
+/* ─── CONTACT CARDS ─── */
+.search-wrap { position: relative; margin-bottom: 12px; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search-input { width: 100%; background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 11px 14px 11px 37px; font-family: 'Outfit', sans-serif; font-size: 0.86rem; font-weight: 300; color: var(--ink); outline: none; transition: border-color 0.16s, box-shadow 0.16s; }
+.search-input:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,146,74,0.1); }
+.search-input::placeholder { color: var(--muted); }
+.contact-list { display: flex; flex-direction: column; gap: 8px; }
+.contact-card { background: var(--white); border: 1px solid var(--line); border-radius: var(--r); padding: 13px 14px; display: flex; align-items: center; gap: 11px; }
+.cc-av { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 500; flex-shrink: 0; color: #fff; letter-spacing: 0.03em; }
+.cc-body { flex: 1; min-width: 0; }
+.cc-name { font-size: 0.9rem; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
+.cc-sub { font-size: 0.72rem; color: var(--muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cc-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 9px; border-radius: 20px; font-size: 0.62rem; white-space: nowrap; flex-shrink: 0; font-weight: 400; }
+.cc-rm { background: none; border: none; padding: 7px; cursor: pointer; color: var(--muted); border-radius: 6px; transition: color 0.14s, background 0.14s; flex-shrink: 0; }
+.cc-rm:active { color: #b84040; background: #fff0f0; }
+
+/* ─── ADD FORM ─── */
+.form-card { background: var(--white); border: 1px solid var(--line); border-radius: var(--r); padding: 22px 18px; }
+.form-card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 400; margin-bottom: 5px; color: var(--ink); }
+.form-card-sub { font-size: 0.74rem; color: var(--muted); margin-bottom: 22px; line-height: 1.55; }
+.form-fields { display: flex; flex-direction: column; gap: 14px; }
+.fg { display: flex; flex-direction: column; gap: 6px; }
+.fg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+label { font-size: 0.6rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); font-weight: 400; }
+.fi, .fsel { background: var(--cream); border: 1px solid var(--line); border-radius: 8px; padding: 11px 12px; font-family: 'Outfit', sans-serif; font-size: 0.86rem; font-weight: 300; color: var(--ink); outline: none; -webkit-appearance: none; width: 100%; transition: border-color 0.16s, background 0.16s, box-shadow 0.16s; }
+.fi:focus, .fsel:focus { background: var(--white); border-color: var(--gold); box-shadow: 0 0 0 3px rgba(184,146,74,0.1); }
+.fi::placeholder { color: var(--muted); }
+.fsel option { background: var(--white); }
+.form-sep { height: 1px; background: var(--line); }
+.save-btn { width: 100%; padding: 13px; background: var(--ink); color: var(--gold-light); border: none; border-radius: 8px; font-family: 'Outfit', sans-serif; font-size: 0.76rem; font-weight: 400; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; transition: background 0.15s; -webkit-tap-highlight-color: transparent; }
+.save-btn:active { background: #2d2a25; }
+.save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ─── EMPTY / TOAST ─── */
+.empty { padding: 44px 0; text-align: center; font-size: 0.78rem; color: var(--muted); letter-spacing: 0.05em; }
+.empty-glyph { font-size: 1.5rem; margin-bottom: 10px; opacity: 0.22; }
+.toast { position: fixed; bottom: calc(var(--tab-h) + 12px); left: 50%; transform: translateX(-50%) translateY(8px); background: var(--ink); color: var(--gold-light); padding: 10px 20px; border-radius: 7px; font-size: 0.74rem; letter-spacing: 0.04em; opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; z-index: 999; white-space: nowrap; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ─── DESKTOP ─── */
+@media (min-width: 720px) {
+  .shell { display: grid; grid-template-columns: 248px 1fr; }
+  .topbar { display: none; }
+  .tab-bar { display: none; }
+  .sidebar { display: flex !important; flex-direction: column; background: var(--ink); padding: 34px 22px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+  .sb-brand { margin-bottom: 36px; }
+  .sb-mark { font-family: 'Cormorant Garamond', serif; font-size: 1.35rem; font-weight: 300; color: var(--gold-light); line-height: 1.2; }
+  .sb-sub { font-size: 0.56rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255,255,255,0.25); margin-top: 6px; }
+  .sb-nav { display: flex; flex-direction: column; gap: 2px; }
+  .sb-btn { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 7px; cursor: pointer; transition: background 0.15s, color 0.15s; color: rgba(255,255,255,0.35); font-size: 0.8rem; font-weight: 400; letter-spacing: 0.02em; border: none; background: none; width: 100%; text-align: left; }
+  .sb-btn svg { opacity: 0.38; transition: opacity 0.15s; flex-shrink: 0; }
+  .sb-btn:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.65); }
+  .sb-btn.active { background: var(--gold); color: #1a1410; }
+  .sb-btn.active svg { opacity: 0.9; }
+  .sb-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.07); }
+  .sb-stats { display: flex; gap: 24px; margin-bottom: 14px; }
+  .sb-stat-n { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: var(--gold-light); font-weight: 300; line-height: 1; }
+  .sb-stat-l { font-size: 0.54rem; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.2); margin-top: 3px; }
+  .sb-fs { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .sb-fs-label { font-size: 0.56rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.22); }
+  .sb-fs-btn { background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.5); border-radius: 5px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; font-family: 'Outfit', sans-serif; }
+  .sb-fs-btn:hover { background: rgba(255,255,255,0.12); color: var(--gold-light); }
+  .sb-fs-val { font-size: 0.62rem; color: rgba(255,255,255,0.3); min-width: 28px; text-align: center; }
+  .sb-sync-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); cursor: pointer; transition: background 0.15s; }
+  .sb-sync-pill:hover { background: rgba(255,255,255,0.09); }
+  .sb-sync-label { font-size: 0.56rem; color: rgba(255,255,255,0.25); letter-spacing: 0.08em; }
+  main { padding: 38px 42px; }
+  .cluster-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .toast { bottom: 28px; }
+  .form-card { max-width: 520px; }
+}
+
+
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="topbar">
+    <div class="brand-wrap">
+      <div class="brand-mark">CAIO Network</div>
+      <div class="brand-sub">Chicago Booth · 2025–2026</div>
+    </div>
+    <div class="topbar-right">
+      <div class="fs-control">
+        <span class="fs-label">Aa</span>
+        <button class="fs-btn" onclick="fsDown()">−</button>
+        <span class="fs-val" id="m-fs-val">100%</span>
+        <button class="fs-btn" onclick="fsUp()">+</button>
+      </div>
+      <div class="sync-pill" style="cursor:default">
+        <div class="sync-dot live" id="m-sync-dot"></div>
+        <span class="sync-label" id="m-sync-label">Live</span>
+      </div>
+      <div class="topbar-stats">
+        <div><div class="ts-n" id="m-total">0</div><div class="ts-l">Contacts</div></div>
+        <div><div class="ts-n" id="m-ind">0</div><div class="ts-l">Industries</div></div>
+      </div>
+    </div>
+  </header>
+
+
+  <aside class="sidebar" style="display:none">
+    <div class="sb-brand">
+      <div class="sb-mark">CAIO<br>Network</div>
+      <div class="sb-sub">Chicago Booth · 2025–2026</div>
+    </div>
+    <nav class="sb-nav">
+      <button class="sb-btn active" onclick="show('clusters',this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="16" cy="14" r="3"/><circle cx="6" cy="18" r="2.5"/></svg>
+        Industry Clusters
+      </button>
+      <button class="sb-btn" onclick="show('list',this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="15" y2="18"/></svg>
+        All Contacts
+      </button>
+      <button class="sb-btn" onclick="show('add',this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Add Contact
+      </button>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-fs">
+        <span class="sb-fs-label">Text size</span>
+        <button class="sb-fs-btn" onclick="fsDown()">−</button>
+        <span class="sb-fs-val" id="d-fs-val">100%</span>
+        <button class="sb-fs-btn" onclick="fsUp()">+</button>
+      </div>
+      <div class="sb-stats">
+        <div><div class="sb-stat-n" id="d-total">0</div><div class="sb-stat-l">Contacts</div></div>
+        <div><div class="sb-stat-n" id="d-ind">0</div><div class="sb-stat-l">Industries</div></div>
+      </div>
+      <div class="sb-sync-pill" style="cursor:default">
+        <div class="sync-dot live" id="d-sync-dot"></div>
+        <span class="sb-sync-label" id="d-sync-label">Live · Google Sheets</span>
+      </div>
+    </div>
+  </aside>
+
+  <main>
+
+    <!-- CLUSTERS -->
+    <div class="page active" id="page-clusters">
+      <div class="ph"><div class="ph-title">Clusters</div><div class="ph-meta" id="c-meta"></div></div>
+      <div class="dist-panel" id="dist-panel" style="display:none">
+        <div class="eyebrow">Distribution</div>
+        <div class="bar-track" id="bar-track"></div>
+        <div class="bar-legend" id="bar-legend"></div>
+      </div>
+      <div class="cluster-grid" id="cluster-grid"></div>
+      <div class="empty" id="c-empty" style="display:none"><div class="empty-glyph">◎</div>No contacts yet</div>
+    </div>
+
+    <!-- LIST -->
+    <div class="page" id="page-list">
+      <div class="ph"><div class="ph-title">Contacts</div><div class="ph-meta" id="l-meta"></div></div>
+      <div class="search-wrap">
+        <svg class="search-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+        <input class="search-input" id="search" placeholder="Name, company, industry…" oninput="renderList()">
+      </div>
+      <div class="contact-list" id="contact-list"></div>
+    </div>
+
+    <!-- ADD -->
+    <div class="page" id="page-add">
+      <div class="ph"><div class="ph-title">Add Contact</div></div>
+      <div class="form-card">
+        <div class="form-card-title">New connection</div>
+        <div class="form-card-sub">Saved instantly and synced to the shared sheet for everyone to see.</div>
+        <div class="form-fields">
+          <div class="fg-row">
+            <div class="fg"><label>First Name *</label><input class="fi" id="ff" placeholder="Sarah"></div>
+            <div class="fg"><label>Last Name *</label><input class="fi" id="fl" placeholder="Chen"></div>
+          </div>
+          <div class="fg">
+            <label>Industry *</label>
+            <select class="fsel" id="fi-sel">
+              <option value="">Select industry…</option>
+              <option>Consulting</option><option>Financial Services</option>
+              <option>Technology</option><option>Healthcare</option>
+              <option>Manufacturing</option><option>Retail &amp; Consumer</option>
+              <option>Media &amp; Entertainment</option><option>Real Estate</option>
+              <option>Energy</option><option>Education</option>
+              <option>Government &amp; Public Sector</option><option>Legal</option>
+              <option>Nonprofit</option><option>Other</option>
+            </select>
+          </div>
+          <div class="form-sep"></div>
+          <div class="fg"><label>Title / Role</label><input class="fi" id="fr" placeholder="VP of AI Strategy"></div>
+          <div class="fg"><label>Company</label><input class="fi" id="fc" placeholder="McKinsey &amp; Co."></div>
+          <div class="fg"><label>Email</label><input class="fi" id="fe" placeholder="sarah@company.com" type="email"></div>
+          <div class="fg"><label>Notes</label><input class="fi" id="fn" placeholder="Context, follow-up ideas…"></div>
+          <button class="save-btn" id="save-btn" onclick="addContact()">Save Contact</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <nav class="tab-bar">
+    <button class="tab-btn active" id="tab-clusters" onclick="show('clusters')">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="16" cy="14" r="3"/><circle cx="6" cy="18" r="2.5"/></svg>
+      Clusters
+    </button>
+    <button class="tab-btn" id="tab-list" onclick="show('list')">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="15" y2="18"/></svg>
+      Contacts
+    </button>
+    <button class="tab-btn" id="tab-add" onclick="show('add')">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Add
+    </button>
+  </nav>
+
+</div>
+<div class="toast" id="toast"></div>
+<script>
+
+const PAL = {
+  'Consulting':'#7b9ea6','Financial Services':'#9b8ea6','Technology':'#5a9478',
+  'Healthcare':'#c4956a','Manufacturing':'#7a8fba','Retail & Consumer':'#b08080',
+  'Media & Entertainment':'#8aab9b','Real Estate':'#a6976e','Energy':'#9aaba6',
+  'Education':'#9a8aa0','Government & Public Sector':'#7aa0b0','Legal':'#a68966',
+  'Nonprofit':'#7a9e7a','Other':'#989898'
+};
+const h2r=(hex,a)=>{const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return `rgba(${r},${g},${b},${a})`;};
+const col=i=>PAL[i]||PAL['Other'];
+const inits=(f,l)=>((f[0]||'')+(l[0]||'')).toUpperCase();
+
+// ── FONT SIZE ─────────────────────────────────────────────
+let fsScale = parseFloat(localStorage.getItem('caio-fs') || '1');
+function applyFS() {
+  document.documentElement.style.setProperty('--fs', fsScale);
+  const pct = Math.round(fsScale * 100) + '%';
+  ['m-fs-val','d-fs-val'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=pct;});
+  localStorage.setItem('caio-fs', fsScale);
+}
+function fsUp()   { if(fsScale < 1.4){ fsScale = Math.round((fsScale+0.1)*10)/10; applyFS(); } }
+function fsDown() { if(fsScale > 0.8){ fsScale = Math.round((fsScale-0.1)*10)/10; applyFS(); } }
+
+// ── STATE ─────────────────────────────────────────────────
+let contacts = JSON.parse(localStorage.getItem('caio-contacts') || '[]');
+const saveLocal = () => localStorage.setItem('caio-contacts', JSON.stringify(contacts));
+
+// ── NAV ───────────────────────────────────────────────────
+let currentPage = 'clusters';
+function show(page, sbBtn) {
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.sb-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const tabEl = document.getElementById('tab-'+page);
+  if(tabEl) tabEl.classList.add('active');
+  if(sbBtn) sbBtn.classList.add('active');
+  else document.querySelectorAll('.sb-btn').forEach(b=>{if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+page+"'"))b.classList.add('active');});
+  if(page==='clusters') renderClusters();
+  if(page==='list')     renderList();
+  if(page==='settings'&&typeof renderSettings==='function') renderSettings();
+}
+
+// ── TOAST ─────────────────────────────────────────────────
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+// ── STATS ─────────────────────────────────────────────────
+function updateStats() {
+  const n=contacts.length, i=new Set(contacts.map(c=>c.industry)).size;
+  ['m-total','d-total'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=n;});
+  ['m-ind','d-ind'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});
+}
+
+// ── RENDER CLUSTERS ───────────────────────────────────────
+function renderClusters() {
+  const grid=document.getElementById('cluster-grid');
+  const empty=document.getElementById('c-empty');
+  const dist=document.getElementById('dist-panel');
+  grid.innerHTML='';
+  const groups={};
+  contacts.forEach(c=>{(groups[c.industry]=groups[c.industry]||[]).push(c);});
+  const entries=Object.entries(groups).sort((a,b)=>b[1].length-a[1].length);
+  const n=contacts.length;
+  document.getElementById('c-meta').textContent=n?n+' contact'+(n!==1?'s':''):'';
+  if(!entries.length){empty.style.display='block';dist.style.display='none';return;}
+  empty.style.display='none'; dist.style.display='block';
+  document.getElementById('bar-track').innerHTML=entries.map(([ind,ppl])=>
+    `<div class="bar-seg" style="flex:${ppl.length};background:${col(ind)}" title="${ind}: ${ppl.length}"></div>`).join('');
+  document.getElementById('bar-legend').innerHTML=entries.map(([ind,ppl])=>
+    `<div class="leg-item"><div class="leg-dot" style="background:${col(ind)}"></div><span>${ind}</span><span style="color:var(--muted);margin-left:3px">${ppl.length}</span></div>`).join('');
+  entries.forEach(([ind,ppl])=>{
+    const card=document.createElement('div');
+    card.className='cluster-card';
+    card.innerHTML=`
+      <div class="cluster-head">
+        <div class="cluster-pip" style="background:${col(ind)}"></div>
+        <div class="cluster-name">${ind}</div>
+        <div class="cluster-badge">${ppl.length}</div>
+      </div>
+      <div class="cluster-body">
+        ${ppl.map(p=>`<div class="p-row">
+          <div class="p-av" style="background:${col(ind)}">${inits(p.first,p.last)}</div>
+          <div><div class="p-name">${p.first} ${p.last}</div>
+          <div class="p-sub">${[p.role,p.company].filter(Boolean).join(' · ')||'—'}</div></div>
+        </div>`).join('')}
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+// ── RENDER LIST ───────────────────────────────────────────
+function renderList() {
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  const list=document.getElementById('contact-list');
+  const filtered=contacts.filter(c=>!q||`${c.first} ${c.last} ${c.company||''} ${c.role||''} ${c.industry}`.toLowerCase().includes(q));
+  const n=filtered.length;
+  document.getElementById('l-meta').textContent=n?n+' contact'+(n!==1?'s':''):'';
+  if(!n){list.innerHTML=`<div class="empty"><div class="empty-glyph">◎</div>No contacts found</div>`;return;}
+  list.innerHTML=filtered.map(c=>{
+    const bg=col(c.industry);
+    return `<div class="contact-card">
+      <div class="cc-av" style="background:${bg}">${inits(c.first,c.last)}</div>
+      <div class="cc-body">
+        <div class="cc-name">${c.first} ${c.last}</div>
+        <div class="cc-sub">${[c.role,c.company].filter(Boolean).join(' · ')||c.email||'—'}</div>
+      </div>
+      <span class="cc-badge" style="background:${h2r(bg,0.13)};color:${bg};border:1px solid ${h2r(bg,0.28)}">
+        <span style="width:5px;height:5px;border-radius:50%;background:${bg};display:inline-block;flex-shrink:0"></span>
+        ${c.industry}
+      </span>
+      <button class="cc-rm" onclick="del(${c.id})">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+// ── ADD ───────────────────────────────────────────────────
+async function addContact() {
+  const first=document.getElementById('ff').value.trim();
+  const last=document.getElementById('fl').value.trim();
+  const industry=document.getElementById('fi-sel').value;
+  if(!first||!last||!industry){toast('Fill in the required fields');return;}
+  const btn=document.getElementById('save-btn');
+  btn.disabled=true; btn.textContent='Saving…';
+  const c={id:Date.now(),first,last,industry,
+    role:document.getElementById('fr').value.trim(),
+    company:document.getElementById('fc').value.trim(),
+    email:document.getElementById('fe').value.trim(),
+    notes:document.getElementById('fn').value.trim()};
+  contacts.push(c); saveLocal(); updateStats();
+  toast(`${first} ${last} saved`);
+  ['ff','fl','fr','fc','fe','fn'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fi-sel').value='';
+  btn.disabled=false; btn.textContent='Save Contact';
+  if(typeof pushToSheet==='function') await pushToSheet(c);
+}
+
+// ── DELETE ────────────────────────────────────────────────
+async function del(id) {
+  contacts=contacts.filter(c=>c.id!==id); saveLocal(); updateStats(); renderList();
+  if(typeof deleteFromSheet==='function') await deleteFromSheet(id);
+}
+
+// ── EXPORT ───────────────────────────────────────────────
+function exportCSV() {
+  const headers=['First','Last','Industry','Role','Company','Email','Notes'];
+  const rows=contacts.map(c=>[c.first,c.last,c.industry,c.role||'',c.company||'',c.email||'',c.notes||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(','));
+  const csv=[headers.join(','),...rows].join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='caio-network.csv'; a.click();
+}
+
+
+// ── SYNC (SHARED — URL baked in) ─────────────────────────
+const scriptURL = 'SCRIPT_URL_PLACEHOLDER';
+
+function setSyncUI(state) {
+  // shared version always shows live
+}
+async function pushToSheet(c) {
+  if(!scriptURL) return;
+  try { await fetch(scriptURL,{method:'POST',body:JSON.stringify({action:'add',contact:c})}); }
+  catch(e) { toast('Saved locally — sheet sync failed'); }
+}
+async function deleteFromSheet(id) {
+  if(!scriptURL) return;
+  try { await fetch(scriptURL,{method:'POST',body:JSON.stringify({action:'delete',id})}); }
+  catch(e) {}
+}
+async function syncFromSheet() {
+  if(!scriptURL) return;
+  try {
+    const r=await fetch(`${scriptURL}?action=getAll`);
+    const remote=await r.json();
+    const remoteIds=new Set(remote.map(c=>String(c.id)));
+    const localOnly=contacts.filter(c=>!remoteIds.has(String(c.id)));
+    contacts=[...remote.map(c=>({...c,id:Number(c.id)||c.id})),...localOnly];
+    for(const c of localOnly){ await fetch(scriptURL,{method:'POST',body:JSON.stringify({action:'add',contact:c})}); }
+    saveLocal(); updateStats();
+    if(currentPage==='clusters') renderClusters();
+    if(currentPage==='list') renderList();
+  } catch(e) { toast('Could not reach sheet — showing local data'); }
+}
+
+
+// ── INIT ─────────────────────────────────────────────────
+applyFS();
+updateStats();
+renderClusters();
+syncFromSheet();
+
+</script>
+</body>
+</html>
